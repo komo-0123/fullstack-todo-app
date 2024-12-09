@@ -1,17 +1,19 @@
-# Goの公式イメージを使用
 FROM golang:1.23
 
-# 作業ディレクトリを設定
-WORKDIR /app
+WORKDIR /backend
 
-# ソースコードをコンテナにコピー
-COPY . .
+COPY go.mod ./
 
-# 必要な依存関係を解決
 RUN go mod tidy
 
-# ポートを公開
+RUN go install github.com/air-verse/air@latest
+
+COPY . .
+
+RUN air init
+
+WORKDIR /backend/app
+
 EXPOSE 8080
 
-# アプリケーションを実行
-CMD ["go", "run", "main.go"]
+CMD ["air"]

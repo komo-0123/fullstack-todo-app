@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: react-app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    container_name: go-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/backend
+      - /backend/tmp
