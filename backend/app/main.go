@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,7 +26,7 @@ func getTodos(w http.ResponseWriter, _ *http.Request) {
 }
 
 // TodoリストのIDを指定して取得する
-func getTodosById(w http.ResponseWriter, r *http.Request) {
+func getTodoById(w http.ResponseWriter, r *http.Request) {
     idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
 
     id, err := strconv.Atoi(idStr)
@@ -99,7 +99,7 @@ func deleteTodoById(w http.ResponseWriter, r *http.Request) {
     for i, todo := range todos {
         if todo.Id == id {
             todos = append(todos[:i], todos[i+1:]...)
-            
+
             w.Header().Set("Content-Type", "application/json")
             w.WriteHeader(http.StatusOK)
             json.NewEncoder(w).Encode(todos)
@@ -109,7 +109,42 @@ func deleteTodoById(w http.ResponseWriter, r *http.Request) {
 
     http.Error(w, "Todo not found", http.StatusNotFound)
 }
+// 4. 次のステップ
+
+// 	1.	セキュリティ強化:
+// 	•	バリデーションやエラーハンドリングを充実させる。
+// 	•	必要であれば認証や認可を追加。
+// 	2.	データベースとの連携:
+// 	•	データを永続化して、コンテナ再起動後もデータが保持されるようにする。
+// 	3.	テスト:
+// 	•	各エンドポイントをPostmanやcurlでテスト。
+// 	•	Goのnet/http/httptestを使ったユニットテスト。
 
 func main() {
-    fmt.Println("Hello Go!")
+    http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getTodos(w, r) 
+		case http.MethodPost:
+			createTodo(w, r) 
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+    http.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getTodoById(w, r)
+		case http.MethodPut:
+			updateTodoById(w, r) 
+		case http.MethodDelete:
+			deleteTodoById(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+    log.Println("Server running on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
