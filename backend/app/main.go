@@ -109,16 +109,6 @@ func deleteTodoById(w http.ResponseWriter, r *http.Request) {
 
     http.Error(w, "Todo not found", http.StatusNotFound)
 }
-// 4. 次のステップ
-
-// 	1.	セキュリティ強化:
-// 	•	バリデーションやエラーハンドリングを充実させる。
-// 	•	必要であれば認証や認可を追加。
-// 	2.	データベースとの連携:
-// 	•	データを永続化して、コンテナ再起動後もデータが保持されるようにする。
-// 	3.	テスト:
-// 	•	各エンドポイントをPostmanやcurlでテスト。
-// 	•	Goのnet/http/httptestを使ったユニットテスト。
 
 func main() {
     http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
