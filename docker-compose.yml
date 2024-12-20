@@ -23,3 +23,19 @@ services:
     volumes:
       - ./backend:/backend
       - /backend/tmp
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: todo_db
+      MYSQL_USER: todo_user
+      MYSQL_PASSWORD: todo_password
+    volumes:
+      - db-data:/db/lib/mysql
+
+volumes:
+  db-data:
