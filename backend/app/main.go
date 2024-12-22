@@ -87,11 +87,27 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(todo)
 }
 
+func validationTodoInput(todo Todo) error {
+    if len(strings.TrimSpace(todo.Title)) == 0 {
+        return fmt.Errorf("title is required")
+    }
+    if len(todo.Title) > 255 {
+        return fmt.Errorf("title must be less than 255 characters")
+    }
+    return nil
+}
+
 // Todoリストを追加する
 func createTodo(w http.ResponseWriter, r *http.Request) {
     var newTodo Todo
     if err := json.NewDecoder(r.Body).Decode(&newTodo); err != nil {
         http.Error(w, "Invalid input", http.StatusBadRequest)
+        return
+    }
+
+    // 入力値のバリデーション
+    if err := validationTodoInput(newTodo); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
 
@@ -126,6 +142,12 @@ func updateTodoById(w http.ResponseWriter, r *http.Request) {
     var updatedTodo Todo
     if err := json.NewDecoder(r.Body).Decode(&updatedTodo); err != nil {
         http.Error(w, "Invalid input", http.StatusBadRequest)
+        return
+    }
+
+    // 入力値のバリデーション
+    if err := validationTodoInput(updatedTodo); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
 
