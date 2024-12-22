@@ -35,7 +35,7 @@ services:
       MYSQL_USER: todo_user
       MYSQL_PASSWORD: todo_password
     volumes:
-      - db-data:/db/lib/mysql
+      - db-data:/var/lib/mysql
 
 volumes:
   db-data:
