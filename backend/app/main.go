@@ -36,12 +36,12 @@ func initDB() error {
 type Todo struct {
     Id int `json:"id"`
     Title string `json:"title"`
-    IsComplete bool `json:"is_completed"`
+    IsComplete bool `json:"is_complete"`
 }
 
 // Todoリストをすべて取得する
 func getTodos(w http.ResponseWriter, _ *http.Request) {
-    rows, err := db.Query("SELECT id, title, is_completed FROM todos")
+    rows, err := db.Query("SELECT id, title, is_complete FROM todos")
     if err != nil {
         http.Error(w, "Failed to fetch todos", http.StatusInternalServerError)
         return
@@ -71,7 +71,7 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
     } 
 
     var todo Todo
-    query := "SELECT id, title, is_completed FROM todos WHERE id = ?"
+    query := "SELECT id, title, is_complete FROM todos WHERE id = ?"
     err = db.QueryRow(query, id).Scan(&todo.Id, &todo.Title, &todo.IsComplete); 
     if err != nil {
         // QueryRow()は結果がない場合、sql.ErrNoRowsを返すため、適切なエラーハンドリングを行う
@@ -95,7 +95,7 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    results, err := db.Exec("INSERT INTO todos (title, is_completed) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
+    results, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
     if err != nil {
         http.Error(w, "Failed to insert todo", http.StatusInternalServerError)
         return
@@ -129,7 +129,7 @@ func updateTodoById(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    query := "UPDATE todos SET title = ?, is_completed = ? WHERE id = ?"
+    query := "UPDATE todos SET title = ?, is_complete = ? WHERE id = ?"
     result, err := db.Exec(query, updatedTodo.Title, updatedTodo.IsComplete, id)
     if err != nil {
         http.Error(w, "Failed to update todo", http.StatusInternalServerError)
