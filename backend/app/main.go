@@ -74,7 +74,7 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
     query := "SELECT id, title, is_complete FROM todos WHERE id = ?"
     err = db.QueryRow(query, id).Scan(&todo.Id, &todo.Title, &todo.IsComplete); 
     if err != nil {
-        // QueryRow()は結果がない場合、sql.ErrNoRowsを返すため、適切なエラーハンドリングを行う
+        // QueryRow()は結果がない場合sql.ErrNoRowsを返すため、適切なエラーハンドリングを行う
         if err == sql.ErrNoRows {
             http.Error(w, "Todo not found", http.StatusNotFound)
         } else {
