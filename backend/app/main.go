@@ -18,6 +18,15 @@ import (
 
 var db *sql.DB
 
+// エラーレスポンスをJSON形式で返す
+func jsonError(w http.ResponseWriter, message string, statusCode int) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(statusCode)
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "error": message,
+        "status": statusCode,
+    })
+}
 type Todo struct {
     Id int `json:"id"`
     Title string `json:"title"`
@@ -28,7 +37,7 @@ type Todo struct {
 func getTodos(w http.ResponseWriter, _ *http.Request) {
     rows, err := db.Query("SELECT id, title, is_complete FROM todos")
     if err != nil {
-        http.Error(w, "Failed to fetch todos", http.StatusInternalServerError)
+        jsonError(w, "TODOの取得に失敗しました。", http.StatusInternalServerError)
         return
     }
 
@@ -37,7 +46,7 @@ func getTodos(w http.ResponseWriter, _ *http.Request) {
     for rows.Next() {
         var todo Todo
         if err := rows.Scan(&todo.Id, &todo.Title, &todo.IsComplete); err != nil {
-            http.Error(w, "Failed to scan todos", http.StatusInternalServerError)
+            jsonError(w, "TODOの読み込みに失敗しました。", http.StatusInternalServerError)
             return
         }
         todos = append(todos, todo)
@@ -52,7 +61,7 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
     idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
     id, err := strconv.Atoi(idStr)
     if err != nil {
-        http.Error(w, "Invalid ID", http.StatusBadRequest)
+        jsonError(w, "IDが不正です。", http.StatusBadRequest)
     } 
 
     var todo Todo
@@ -61,9 +70,9 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         // QueryRow()は結果がない場合sql.ErrNoRowsを返すため、適切なエラーハンドリングを行う
         if err == sql.ErrNoRows {
-            http.Error(w, "Todo not found", http.StatusNotFound)
+            jsonError(w, "TODOが見つかりません。", http.StatusNotFound)
         } else {
-            http.Error(w, "Failed to fetch todo", http.StatusInternalServerError)
+            jsonError(w, "TODOの取得に失敗しました。", http.StatusInternalServerError)
         }
         return
     }
@@ -74,10 +83,10 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
 
 func validationTodoInput(todo Todo) error {
     if len(strings.TrimSpace(todo.Title)) == 0 {
-        return fmt.Errorf("title is required")
+        return fmt.Errorf("タイトルは必須です。")
     }
     if len(todo.Title) > 255 {
-        return fmt.Errorf("title must be less than 255 characters")
+        return fmt.Errorf("タイトルは255文字以内で入力してください。")
     }
     return nil
 }
@@ -86,25 +95,25 @@ func validationTodoInput(todo Todo) error {
 func createTodo(w http.ResponseWriter, r *http.Request) {
     var newTodo Todo
     if err := json.NewDecoder(r.Body).Decode(&newTodo); err != nil {
-        http.Error(w, "Invalid input", http.StatusBadRequest)
+        jsonError(w, "入力が不正です。", http.StatusBadRequest)
         return
     }
 
     // 入力値のバリデーション
     if err := validationTodoInput(newTodo); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
 
     results, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
     if err != nil {
-        http.Error(w, "Failed to insert todo", http.StatusInternalServerError)
+        jsonError(w, "TODOの追加に失敗しました。", http.StatusInternalServerError)
         return
     }
     
     id, err := results.LastInsertId()
     if err != nil {
-        http.Error(w, "Failed to get last insert ID", http.StatusInternalServerError)
+        jsonError(w, "IDの取得に失敗しました。", http.StatusInternalServerError)
         return
     }
 
@@ -120,33 +129,33 @@ func updateTodoById(w http.ResponseWriter, r *http.Request) {
     idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
     id, err := strconv.Atoi(idStr)
     if err != nil {
-        http.Error(w, "Invalid ID", http.StatusBadRequest)
+        jsonError(w, "IDが不正です。", http.StatusBadRequest)
         return
     }
 
     var updatedTodo Todo
     if err := json.NewDecoder(r.Body).Decode(&updatedTodo); err != nil {
-        http.Error(w, "Invalid input", http.StatusBadRequest)
+        jsonError(w, "入力が不正です。", http.StatusBadRequest)
         return
     }
 
     // 入力値のバリデーション
     if err := validationTodoInput(updatedTodo); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
 
     query := "UPDATE todos SET title = ?, is_complete = ? WHERE id = ?"
     result, err := db.Exec(query, updatedTodo.Title, updatedTodo.IsComplete, id)
     if err != nil {
-        http.Error(w, "Failed to update todo", http.StatusInternalServerError)
+        jsonError(w, "TODOの更新に失敗しました。", http.StatusInternalServerError)
         return
     }
 
     // ResultインターフェースのRowsAffected()は更新された行数を返す。
     rowsAffected, err := result.RowsAffected()
     if err != nil || rowsAffected == 0 {
-        http.Error(w, "Todo not found", http.StatusNotFound)
+        jsonError(w, "更新したTODOがありません。", http.StatusNotFound)
         return
     }
 
@@ -160,19 +169,19 @@ func deleteTodoById(w http.ResponseWriter, r *http.Request) {
     idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
     id, err := strconv.Atoi(idStr)
     if err != nil {
-        http.Error(w, "Invalid ID", http.StatusBadRequest)
+        jsonError(w, "IDが不正です。", http.StatusBadRequest)
         return
     }
 
     result, err := db.Exec("DELETE FROM todos WHERE id = ?", id)
     if err != nil {
-        http.Error(w, "Failed to delete todo", http.StatusInternalServerError)
+        jsonError(w, "TODOの削除に失敗しました。", http.StatusInternalServerError)
         return
     }
 
     rowsAffected, err := result.RowsAffected()
     if err != nil || rowsAffected == 0 {
-        http.Error(w, "Todo not found", http.StatusNotFound)
+        jsonError(w, "指定のTODOは削除済みです。", http.StatusNotFound)
         return
     }
 
@@ -187,7 +196,7 @@ func todoHandler(w http.ResponseWriter, r *http.Request) {
     case http.MethodPost:
         createTodo(w, r)
     default:
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        jsonError(w, "許可されていないメソッドです。", http.StatusMethodNotAllowed)
     }
 }
 
@@ -200,7 +209,7 @@ func todoByIdHandler(w http.ResponseWriter, r *http.Request) {
     case http.MethodDelete:
         deleteTodoById(w, r)
     default:
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        jsonError(w, "許可されていないメソッドです。", http.StatusMethodNotAllowed)
     }
 }
 
@@ -250,9 +259,9 @@ func limitRequestBodyMiddleware(next http.Handler) http.Handler {
             body, err := io.ReadAll(r.Body)
             if err != nil {
                 if err.Error() == "http: request body too large" {
-                    http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+                    jsonError(w, "リクエストボディのサイズが大きすぎます。", http.StatusRequestEntityTooLarge)
                 } else {
-                    http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+                    jsonError(w, "リクエストボディの読み取りに失敗しました。", http.StatusInternalServerError)
                 }
                 return
             }
@@ -286,7 +295,7 @@ func rateLimitMiddleware(next http.Handler) http.Handler {
         limiter := getLimiter(r.RemoteAddr)
 
         if !limiter.Allow() {
-            http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+            jsonError(w, "リクエストが多すぎます。しばらく待ってから再度お試しください。", http.StatusTooManyRequests)
             return
         }
 
