@@ -18,25 +18,6 @@ import (
 
 var db *sql.DB
 
-// DBの初期化
-func initDB() error {
-    var err error
-    // dsn -> ユーザー名:パスワード@tcp(ホスト名:ポート番号)/データベース名?オプション
-    dsn := "todo_user:todo_password@tcp(mysql-container:3306)/todo_db"
-    db, err = sql.Open("mysql", dsn) // DBとの接続を準備
-    if err != nil {
-        return fmt.Errorf("failed to connect to DB: %w", err)
-    }
-
-    // DBへの接続を確認
-    if err := db.Ping(); err != nil {
-        return fmt.Errorf("failed to ping DB: %w", err)
-    }
-
-    log.Println("Connected to the database successfully!")
-	return nil
-}
-
 type Todo struct {
     Id int `json:"id"`
     Title string `json:"title"`
@@ -221,6 +202,25 @@ func todoByIdHandler(w http.ResponseWriter, r *http.Request) {
     default:
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
     }
+}
+
+// DBの初期化
+func initDB() error {
+    var err error
+    // dsn -> ユーザー名:パスワード@tcp(ホスト名:ポート番号)/データベース名?オプション
+    dsn := "todo_user:todo_password@tcp(mysql-container:3306)/todo_db"
+    db, err = sql.Open("mysql", dsn) // DBとの接続を準備
+    if err != nil {
+        return fmt.Errorf("failed to connect to DB: %w", err)
+    }
+
+    // DBへの接続を確認
+    if err := db.Ping(); err != nil {
+        return fmt.Errorf("failed to ping DB: %w", err)
+    }
+
+    log.Println("Connected to the database successfully!")
+	return nil
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
