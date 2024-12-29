@@ -8,7 +8,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+    "sync"
+    "io"
+    "bytes"
 
+    "golang.org/x/time/rate"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -226,7 +230,7 @@ func corsMiddleware(next http.Handler) http.Handler {
         w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
         w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-        // プリフライトリクエスト（OPTIONS）への応答
+        // プリフライトリクエスト（OPTIONS）への応答    
         if r.Method == http.MethodOptions {
             w.WriteHeader(http.StatusNoContent)
             return
@@ -234,6 +238,67 @@ func corsMiddleware(next http.Handler) http.Handler {
 
         next.ServeHTTP(w, r)
     })
+}
+
+func limitRequestBodyMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Method == http.MethodPost || r.Method == http.MethodPut {
+            // 1KB までのリクエストボディのみ受け付ける
+            r.Body = http.MaxBytesReader(w, r.Body, 1024) // 1024 bytes = 1KB
+
+            // リクエストボディを読み取る
+            body, err := io.ReadAll(r.Body)
+            if err != nil {
+                if err.Error() == "http: request body too large" {
+                    http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+                } else {
+                    http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+                }
+                return
+            }
+
+            // 読み取ったボディを再利用できるように設定
+            r.Body = io.NopCloser(bytes.NewReader(body))
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+
+var limitters = make(map[string]*rate.Limiter)
+var mu sync.Mutex
+
+func getLimiter(ip string) *rate.Limiter {
+    mu.Lock()
+    defer mu.Unlock()
+
+    limiter, ok := limitters[ip]
+    if !ok {
+        limiter = rate.NewLimiter(1, 3)
+        limitters[ip] = limiter
+    }
+
+    return limiter
+}
+
+func rateLimitMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        limiter := getLimiter(r.RemoteAddr)
+
+        if !limiter.Allow() {
+            http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+            return
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+
+func middleWareChain(next http.Handler) http.Handler {
+    next = corsMiddleware(next)
+    next = limitRequestBodyMiddleware(next)
+    next = rateLimitMiddleware(next)
+    return next
 }
 
 func main() {
@@ -246,7 +311,7 @@ func main() {
     mux.HandleFunc("/todos", todoHandler)
     mux.HandleFunc("/todos/", todoByIdHandler)
 
-    handlerWithCORS := corsMiddleware(mux)
+    handlerWithMiddleWares := middleWareChain(mux)
     log.Println("Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", handlerWithCORS))
+	log.Fatal(http.ListenAndServe(":8080", handlerWithMiddleWares))
 }
