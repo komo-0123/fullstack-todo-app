@@ -13,7 +13,7 @@ import (
 )
 
 // TodoリストのIDを指定して取得する
-func getTodoById(w http.ResponseWriter, r *http.Request) {
+func GetTodoById(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -39,7 +39,7 @@ func getTodoById(w http.ResponseWriter, r *http.Request) {
 }
 
 // TodoリストのIDを指定して更新する
-func updateTodoById(w http.ResponseWriter, r *http.Request) {
+func UpdateTodoById(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -80,7 +80,7 @@ func updateTodoById(w http.ResponseWriter, r *http.Request) {
 }
 
 // TodoリストのIDを指定して削除する
-func deleteTodoById(w http.ResponseWriter, r *http.Request) {
+func DeleteTodoById(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/todos/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -103,18 +103,4 @@ func deleteTodoById(w http.ResponseWriter, r *http.Request) {
 
 	// 削除が成功した場合、ステータスコード204を返す
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// /todos/[id]のエンドポイントに対するリクエストを処理する
-func TodoById(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		getTodoById(w, r)
-	case http.MethodPut:
-		updateTodoById(w, r)
-	case http.MethodDelete:
-		deleteTodoById(w, r)
-	default:
-		res.WriteJsonError(w, "許可されていないメソッドです。", http.StatusMethodNotAllowed)
-	}
 }
