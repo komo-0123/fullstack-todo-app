@@ -13,6 +13,7 @@ type RateLimiter struct {
 	mu       sync.Mutex
 }
 
+// RateLimiterのコンストラクタ
 func NewRateLimiter() *RateLimiter {
 	return &RateLimiter{limiters: make(map[string]*rate.Limiter)}
 }
