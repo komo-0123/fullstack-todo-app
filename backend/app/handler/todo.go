@@ -23,7 +23,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	// レコードがある限り、次の行に進む
 	for rows.Next() {
 		var todo model.Todo
-		if err := rows.Scan(&todo.Id, &todo.Title, &todo.IsComplete); err != nil {
+		if err := rows.Scan(&todo.ID, &todo.Title, &todo.IsComplete); err != nil {
 			res.WriteJsonError(w, consts.DB_ERR_FAILED_GET_TODO_ROW, http.StatusInternalServerError)
 			return
 		}
@@ -61,7 +61,7 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newTodo.Id = int(id)
+	newTodo.ID = int(id)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newTodo)

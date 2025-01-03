@@ -24,7 +24,7 @@ func GetTodoById(w http.ResponseWriter, r *http.Request) {
 	var todo model.Todo
 	db := database.GetDB()
 	query := "SELECT id, title, is_complete FROM todos WHERE id = ?"
-	err = db.QueryRow(query, id).Scan(&todo.Id, &todo.Title, &todo.IsComplete)
+	err = db.QueryRow(query, id).Scan(&todo.ID, &todo.Title, &todo.IsComplete)
 	if err != nil {
 		// QueryRow()は結果がない場合sql.ErrNoRowsを返すため、適切なエラーハンドリングを行う
 		if err == sql.ErrNoRows {
@@ -75,7 +75,7 @@ func UpdateTodoById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTodo.Id = id
+	updatedTodo.ID = id
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedTodo)
 }
