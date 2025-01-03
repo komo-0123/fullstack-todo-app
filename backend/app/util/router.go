@@ -10,7 +10,7 @@ func MethodRouter(method map[string]http.HandlerFunc) http.HandlerFunc {
 		if h, ok := method[r.Method]; ok {
 			h(w, r)
 		} else {
-			res.WriteJsonError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			res.WriteJsonError(w, "許可されていないメソッドです。", http.StatusMethodNotAllowed)
 		}
 	}
 }
