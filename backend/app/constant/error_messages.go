@@ -2,11 +2,9 @@ package constant
 
 // 入力関連のエラーメッセージ
 const (
-	INPUT_ERR_INVALID_INPUT     = "入力が不正です。"
-	INPUT_ERR_INVALID_ID        = "IDが不正です。"
-	INPUT_ERR_FAILED_GET_ID     = "IDの取得に失敗しました。"
-	INPUT_ERR_REQUIRED_TITLE    = "タイトルは必須です。"
-	INPUT_ERR_OVER_LENGTH_TITLE = "タイトルは255文字以内で入力してください。"
+	INPUT_ERR_INVALID_INPUT = "入力が不正です。"
+	INPUT_ERR_INVALID_ID    = "IDが不正です。"
+	INPUT_ERR_FAILED_GET_ID = "IDの取得に失敗しました。"
 )
 
 // DB操作関連のエラーメッセージ
