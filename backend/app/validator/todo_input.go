@@ -1,6 +1,7 @@
 package validator
 
 import (
+	consts "backend/app/constant"
 	"backend/app/model"
 	"fmt"
 	"strings"
@@ -8,10 +9,10 @@ import (
 
 func TodoInput(todo model.Todo) error {
 	if len(strings.TrimSpace(todo.Title)) == 0 {
-		return fmt.Errorf("タイトルは必須です。")
+		return fmt.Errorf(consts.INPUT_ERR_REQUIRED_TITLE)
 	}
 	if len(todo.Title) > 255 {
-		return fmt.Errorf("タイトルは255文字以内で入力してください。")
+		return fmt.Errorf(consts.INPUT_ERR_OVER_LENGTH_TITLE)
 	}
 	return nil
 }

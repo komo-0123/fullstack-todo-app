@@ -1,6 +1,7 @@
 package handler
 
 import (
+	consts "backend/app/constant"
 	"backend/app/database"
 	"backend/app/model"
 	res "backend/app/response"
@@ -14,7 +15,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	db := database.GetDB()
 	rows, err := db.Query("SELECT id, title, is_complete FROM todos")
 	if err != nil {
-		res.WriteJsonError(w, "TODOの取得に失敗しました。", http.StatusInternalServerError)
+		res.WriteJsonError(w, consts.DB_ERR_FAILED_GET_TODO, http.StatusInternalServerError)
 		return
 	}
 
@@ -23,7 +24,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	for rows.Next() {
 		var todo model.Todo
 		if err := rows.Scan(&todo.Id, &todo.Title, &todo.IsComplete); err != nil {
-			res.WriteJsonError(w, "TODOの読み込みに失敗しました。", http.StatusInternalServerError)
+			res.WriteJsonError(w, consts.DB_ERR_FAILED_GET_TODO_ROW, http.StatusInternalServerError)
 			return
 		}
 		todos = append(todos, todo)
@@ -37,7 +38,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	var newTodo model.Todo
 	if err := json.NewDecoder(r.Body).Decode(&newTodo); err != nil {
-		res.WriteJsonError(w, "入力が不正です。", http.StatusBadRequest)
+		res.WriteJsonError(w, consts.INPUT_ERR_INVALID_INPUT, http.StatusBadRequest)
 		return
 	}
 
@@ -50,13 +51,13 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	db := database.GetDB()
 	results, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
 	if err != nil {
-		res.WriteJsonError(w, "TODOの追加に失敗しました。", http.StatusInternalServerError)
+		res.WriteJsonError(w, consts.DB_ERR_FAILED_ADD_TODO, http.StatusInternalServerError)
 		return
 	}
 
 	id, err := results.LastInsertId()
 	if err != nil {
-		res.WriteJsonError(w, "IDの取得に失敗しました。", http.StatusInternalServerError)
+		res.WriteJsonError(w, consts.INPUT_ERR_FAILED_GET_ID, http.StatusInternalServerError)
 		return
 	}
 
