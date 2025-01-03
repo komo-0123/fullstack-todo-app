@@ -6,7 +6,7 @@ import (
 
 // ミドルウェアを連結する
 func Chain(next http.Handler) http.Handler {
-	next = Cors(next)
+	next = CORS(next)
 	next = LimitRequestBody(next)
 	next = RateLimitMiddleware(next)
 	return next
