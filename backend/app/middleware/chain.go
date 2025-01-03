@@ -5,9 +5,9 @@ import (
 )
 
 // ミドルウェアを連結する
-func Chain(next http.Handler) http.Handler {
+func Chain(next http.Handler, rl *RateLimiter) http.Handler {
 	next = CORS(next)
 	next = LimitRequestBody(next)
-	next = RateLimitMiddleware(next)
+	next = rl.Middleware(next)
 	return next
 }

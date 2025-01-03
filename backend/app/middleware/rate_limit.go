@@ -9,26 +9,37 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var limitters = make(map[string]*rate.Limiter)
-var mu sync.Mutex
+type RateLimiter struct {
+	limiters map[string]*rate.Limiter
+	mu       sync.Mutex
+}
 
-func getLimiter(ip string) *rate.Limiter {
-	mu.Lock()
-	defer mu.Unlock()
+func NewRateLimiter() *RateLimiter {
+	return &RateLimiter{limiters: make(map[string]*rate.Limiter)}
+}
 
-	limiter, ok := limitters[ip]
-	if !ok {
-		limiter = rate.NewLimiter(1, 3)
-		limitters[ip] = limiter
+func getLimiter(rl *RateLimiter, remoteAddr string) *rate.Limiter {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	// すでにリモートアドレスに対するレートリミッターが存在する場合はそれを返す
+	if limiter, exists := rl.limiters[remoteAddr]; exists {
+		return limiter
 	}
 
+	const (
+		limit = 1 // 1秒間に1リクエスト
+		burst = 3 // バースト数
+	)
+	limiter := rate.NewLimiter(limit, burst)
+	rl.limiters[remoteAddr] = limiter
 	return limiter
 }
 
-// レートリミットをかけるミドルウェア
-func RateLimitMiddleware(next http.Handler) http.Handler {
+// レートリミットを適用するミドルウェア
+func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		limiter := getLimiter(r.RemoteAddr)
+		limiter := getLimiter(rl, r.RemoteAddr)
 
 		if !limiter.Allow() {
 			res.WriteJsonError(w, consts.HTTP_ERR_TOO_MANY_REQUESTS, http.StatusTooManyRequests)

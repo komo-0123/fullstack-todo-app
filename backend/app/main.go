@@ -28,7 +28,9 @@ func main() {
 		http.MethodDelete: handler.DeleteTodoById,
 	}))
 
-	handlerWithMiddlewares := middleware.Chain(mux)
+	lateLimiter := middleware.NewRateLimiter()
+	handlerWithMiddlewares := middleware.Chain(mux, lateLimiter)
+
 	log.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", handlerWithMiddlewares))
 }
