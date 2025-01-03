@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	consts "backend/app/constant"
 	res "backend/app/response"
 	"bytes"
 	"io"
@@ -20,9 +19,11 @@ func LimitRequestBody(next http.Handler) http.Handler {
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				if err.Error() == "http: request body too large" {
-					res.WriteJsonError(w, consts.HTTP_ERR_TOO_LARGE_REQUEST_BODY, http.StatusRequestEntityTooLarge)
+					const tooLargeRequestBody = "リクエストボディが大きすぎます。"
+					res.WriteJsonError(w, tooLargeRequestBody, http.StatusRequestEntityTooLarge)
 				} else {
-					res.WriteJsonError(w, consts.HTTP_ERR_FAILED_READ_REQUEST_BODY, http.StatusInternalServerError)
+					const failedReadRequestBody = "リクエストボディの読み取りに失敗しました。"
+					res.WriteJsonError(w, failedReadRequestBody, http.StatusInternalServerError)
 				}
 				return
 			}

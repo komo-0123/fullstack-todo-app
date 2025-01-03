@@ -1,13 +1,5 @@
 package constant
 
-// リクエスト関連のエラーメッセージ
-const (
-	HTTP_ERR_NOT_ALLOWED_METHOD       = "許可されていないメソッドです。"
-	HTTP_ERR_TOO_LARGE_REQUEST_BODY   = "リクエストボディのサイズが大きすぎます。"
-	HTTP_ERR_FAILED_READ_REQUEST_BODY = "リクエストボディの読み取りに失敗しました。"
-	HTTP_ERR_TOO_MANY_REQUESTS        = "リクエストが多すぎます。しばらく待ってから再度お試しください。"
-)
-
 // 入力関連のエラーメッセージ
 const (
 	INPUT_ERR_INVALID_INPUT     = "入力が不正です。"

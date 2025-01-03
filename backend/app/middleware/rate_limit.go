@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	consts "backend/app/constant"
 	res "backend/app/response"
 	"net/http"
 	"sync"
@@ -42,7 +41,8 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 		limiter := getLimiter(rl, r.RemoteAddr)
 
 		if !limiter.Allow() {
-			res.WriteJsonError(w, consts.HTTP_ERR_TOO_MANY_REQUESTS, http.StatusTooManyRequests)
+			const tooManyRequests = "リクエストが多すぎます。しばらく待ってから再度お試しください。"
+			res.WriteJsonError(w, tooManyRequests, http.StatusTooManyRequests)
 			return
 		}
 
