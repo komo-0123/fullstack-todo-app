@@ -18,7 +18,7 @@ func NewRateLimiter() *RateLimiter {
 	return &RateLimiter{limiters: make(map[string]*rate.Limiter)}
 }
 
-func getLimiter(rl *RateLimiter, remoteAddr string) *rate.Limiter {
+func (rl *RateLimiter) getLimiter(remoteAddr string) *rate.Limiter {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -39,7 +39,7 @@ func getLimiter(rl *RateLimiter, remoteAddr string) *rate.Limiter {
 // レートリミットを適用するミドルウェア
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		limiter := getLimiter(rl, r.RemoteAddr)
+		limiter := rl.getLimiter(r.RemoteAddr)
 
 		if !limiter.Allow() {
 			const tooManyRequests = "リクエストが多すぎます。しばらく待ってから再度お試しください。"
