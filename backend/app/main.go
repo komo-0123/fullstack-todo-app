@@ -4,7 +4,7 @@ import (
 	"backend/app/database"
 	"backend/app/handler"
 	"backend/app/middleware"
-	"backend/app/util"
+	"backend/app/router"
 	"log"
 	"net/http"
 
@@ -18,11 +18,11 @@ func main() {
 	defer database.GetDB().Close()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/todos", util.MethodRouter(map[string]http.HandlerFunc{
+	mux.HandleFunc("/todos", router.MethodRouter(map[string]http.HandlerFunc{
 		http.MethodGet:  handler.GetTodos,
 		http.MethodPost: handler.CreateTodo,
 	}))
-	mux.HandleFunc("/todos/", util.MethodRouter(map[string]http.HandlerFunc{
+	mux.HandleFunc("/todos/", router.MethodRouter(map[string]http.HandlerFunc{
 		http.MethodGet:    handler.GetTodoById,
 		http.MethodPut:    handler.UpdateTodoById,
 		http.MethodDelete: handler.DeleteTodoById,
