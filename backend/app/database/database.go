@@ -27,3 +27,8 @@ func Init() error {
 func GetDB() *sql.DB {
 	return db
 }
+
+// SetDBはテスト用にDBを設定する
+func SetDB(newDB *sql.DB) {
+	db = newDB
+}
