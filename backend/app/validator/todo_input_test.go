@@ -11,9 +11,9 @@ import (
 func TestTodoInput(t *testing.T) {
 	wantErr, noErr := true, false
 	cases := map[string]struct {
-		input     model.Todo
-		errMsg    string
-		expectErr bool
+		input      model.Todo
+		wantErrMsg string
+		expectErr  bool
 	}{
 		"エラーなし":      {model.Todo{ID: 1, Title: "タイトル", IsComplete: false}, "", noErr},
 		"タイトルが空":     {model.Todo{ID: 1, Title: "", IsComplete: false}, "タイトルは必須です。", wantErr},
@@ -24,8 +24,8 @@ func TestTodoInput(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			err := validator.TodoInput(c.input)
 			if c.expectErr {
-				if err == nil || err.Error() != c.errMsg {
-					t.Errorf("want: %s, got: %s", c.errMsg, err.Error())
+				if err == nil || err.Error() != c.wantErrMsg {
+					t.Errorf("want: %s, got: %s", c.wantErrMsg, err.Error())
 				}
 			} else if err != nil {
 				t.Errorf("want: nil, got: %s", err.Error())
