@@ -20,10 +20,10 @@ func LimitRequestBody(next http.Handler) http.Handler {
 			if err != nil {
 				if err.Error() == "http: request body too large" {
 					const tooLargeRequestBody = "リクエストボディが大きすぎます。"
-					res.WriteJsonError(w, tooLargeRequestBody, http.StatusRequestEntityTooLarge)
+					res.WriteJSONError(w, tooLargeRequestBody, http.StatusRequestEntityTooLarge)
 				} else {
 					const failedReadRequestBody = "リクエストボディの読み取りに失敗しました。"
-					res.WriteJsonError(w, failedReadRequestBody, http.StatusInternalServerError)
+					res.WriteJSONError(w, failedReadRequestBody, http.StatusInternalServerError)
 				}
 				return
 			}

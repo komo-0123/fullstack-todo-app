@@ -43,7 +43,7 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 
 		if !limiter.Allow() {
 			const tooManyRequests = "リクエストが多すぎます。しばらく待ってから再度お試しください。"
-			res.WriteJsonError(w, tooManyRequests, http.StatusTooManyRequests)
+			res.WriteJSONError(w, tooManyRequests, http.StatusTooManyRequests)
 			return
 		}
 
