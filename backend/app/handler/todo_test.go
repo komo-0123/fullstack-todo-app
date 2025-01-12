@@ -27,27 +27,7 @@ func TestGetTodos(t *testing.T) {
 		mockSetup      func()
 		wantStatusCode int
 		wantBody       interface{}
-		expectErr      bool
 	}{
-		"クエリ失敗": {
-			mockSetup: func() {
-				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
-					WillReturnError(fmt.Errorf("DBエラー"))
-			},
-			wantStatusCode: http.StatusInternalServerError,
-			wantBody:       response.ErrorResponse{Error: "TODOの取得に失敗しました。", Status: http.StatusInternalServerError},
-			expectErr:      true,
-		},
-		"行スキャン失敗": {
-			mockSetup: func() {
-				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
-					WillReturnRows(sqlmock.NewRows([]string{"id", "title", "is_complete"}).
-						AddRow("不正なID", "title1", false))
-			},
-			wantStatusCode: http.StatusInternalServerError,
-			wantBody:       response.ErrorResponse{Error: "TODOの読み込みに失敗しました。", Status: http.StatusInternalServerError},
-			expectErr:      true,
-		},
 		"正常系": {
 			mockSetup: func() {
 				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
@@ -60,7 +40,23 @@ func TestGetTodos(t *testing.T) {
 				{ID: 1, Title: "title1", IsComplete: false},
 				{ID: 2, Title: "title2", IsComplete: true},
 			},
-			expectErr: false,
+		},
+		"クエリ失敗": {
+			mockSetup: func() {
+				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
+					WillReturnError(fmt.Errorf("DBエラー"))
+			},
+			wantStatusCode: http.StatusInternalServerError,
+			wantBody:       response.ErrorResponse{Error: "TODOの取得に失敗しました。", Status: http.StatusInternalServerError},
+		},
+		"行スキャン失敗": {
+			mockSetup: func() {
+				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
+					WillReturnRows(sqlmock.NewRows([]string{"id", "title", "is_complete"}).
+						AddRow("不正なID", "title1", false))
+			},
+			wantStatusCode: http.StatusInternalServerError,
+			wantBody:       response.ErrorResponse{Error: "TODOの読み込みに失敗しました。", Status: http.StatusInternalServerError},
 		},
 	}
 
@@ -77,8 +73,8 @@ func TestGetTodos(t *testing.T) {
 				t.Errorf("期待したステータスコード: %d, 実際のステータスコード: %d", tc.wantStatusCode, rec.Code)
 			}
 
-			if tc.expectErr {
-				var got response.ErrorResponse
+			if _, ok := tc.wantBody.([]model.Todo); ok {
+				var got []model.Todo
 				if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
 					t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
 				}
@@ -87,7 +83,7 @@ func TestGetTodos(t *testing.T) {
 					t.Errorf("期待したレスポンス: %v, 実際のレスポンス: %v", tc.wantBody, got)
 				}
 			} else {
-				var got []model.Todo
+				var got response.ErrorResponse
 				if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
 					t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
 				}
