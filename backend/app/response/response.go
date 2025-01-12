@@ -17,10 +17,10 @@ func WriteJSONError(w http.ResponseWriter, message string, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	res := ErrorResponse{
+	r := ErrorResponse{
 		Error:  message,
 		Status: statusCode,
 	}
 
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(r)
 }

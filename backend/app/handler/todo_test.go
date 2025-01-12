@@ -4,7 +4,7 @@ import (
 	"backend/app/database"
 	"backend/app/handler"
 	"backend/app/model"
-	res "backend/app/response"
+	"backend/app/response"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -35,7 +35,7 @@ func TestGetTodos(t *testing.T) {
 					WillReturnError(fmt.Errorf("DBエラー"))
 			},
 			wantStatusCode: http.StatusInternalServerError,
-			wantBody:       res.ErrorResponse{Error: "TODOの取得に失敗しました。", Status: http.StatusInternalServerError},
+			wantBody:       response.ErrorResponse{Error: "TODOの取得に失敗しました。", Status: http.StatusInternalServerError},
 			expectErr:      true,
 		},
 		"行スキャン失敗": {
@@ -45,7 +45,7 @@ func TestGetTodos(t *testing.T) {
 						AddRow("不正なID", "title1", false))
 			},
 			wantStatusCode: http.StatusInternalServerError,
-			wantBody:       res.ErrorResponse{Error: "TODOの読み込みに失敗しました。", Status: http.StatusInternalServerError},
+			wantBody:       response.ErrorResponse{Error: "TODOの読み込みに失敗しました。", Status: http.StatusInternalServerError},
 			expectErr:      true,
 		},
 		"正常系": {
@@ -78,7 +78,7 @@ func TestGetTodos(t *testing.T) {
 			}
 
 			if tc.expectErr {
-				var got res.ErrorResponse
+				var got response.ErrorResponse
 				if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
 					t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
 				}

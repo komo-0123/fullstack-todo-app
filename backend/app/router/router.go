@@ -1,7 +1,7 @@
 package router
 
 import (
-	res "backend/app/response"
+	"backend/app/response"
 	"net/http"
 )
 
@@ -11,7 +11,7 @@ func MethodRouter(method map[string]http.HandlerFunc) http.HandlerFunc {
 			h(w, r)
 		} else {
 			const notAllowedMethod = "許可されていないメソッドです。"
-			res.WriteJSONError(w, notAllowedMethod, http.StatusMethodNotAllowed)
+			response.WriteJSONError(w, notAllowedMethod, http.StatusMethodNotAllowed)
 		}
 	}
 }

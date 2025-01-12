@@ -1,10 +1,10 @@
 package handler
 
 import (
-	consts "backend/app/constant"
+	"backend/app/constant"
 	"backend/app/database"
 	"backend/app/model"
-	res "backend/app/response"
+	"backend/app/response"
 	"backend/app/validator"
 	"encoding/json"
 	"net/http"
@@ -15,7 +15,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	db := database.GetDB()
 	rows, err := db.Query("SELECT id, title, is_complete FROM todos")
 	if err != nil {
-		res.WriteJSONError(w, consts.DB_ERR_FAILED_GET_TODO, http.StatusInternalServerError)
+		response.WriteJSONError(w, constant.DB_ERR_FAILED_GET_TODO, http.StatusInternalServerError)
 		return
 	}
 
@@ -24,7 +24,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	for rows.Next() {
 		var todo model.Todo
 		if err := rows.Scan(&todo.ID, &todo.Title, &todo.IsComplete); err != nil {
-			res.WriteJSONError(w, consts.DB_ERR_FAILED_GET_TODO_ROW, http.StatusInternalServerError)
+			response.WriteJSONError(w, constant.DB_ERR_FAILED_GET_TODO_ROW, http.StatusInternalServerError)
 			return
 		}
 		todos = append(todos, todo)
@@ -38,26 +38,26 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	var newTodo model.Todo
 	if err := json.NewDecoder(r.Body).Decode(&newTodo); err != nil {
-		res.WriteJSONError(w, consts.INPUT_ERR_INVALID_INPUT, http.StatusBadRequest)
+		response.WriteJSONError(w, constant.INPUT_ERR_INVALID_INPUT, http.StatusBadRequest)
 		return
 	}
 
 	// 入力値のバリデーション
 	if err := validator.TodoInput(newTodo); err != nil {
-		res.WriteJSONError(w, err.Error(), http.StatusBadRequest)
+		response.WriteJSONError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	db := database.GetDB()
 	results, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
 	if err != nil {
-		res.WriteJSONError(w, consts.DB_ERR_FAILED_ADD_TODO, http.StatusInternalServerError)
+		response.WriteJSONError(w, constant.DB_ERR_FAILED_ADD_TODO, http.StatusInternalServerError)
 		return
 	}
 
 	id, err := results.LastInsertId()
 	if err != nil {
-		res.WriteJSONError(w, consts.INPUT_ERR_FAILED_GET_ID, http.StatusInternalServerError)
+		response.WriteJSONError(w, constant.INPUT_ERR_FAILED_GET_ID, http.StatusInternalServerError)
 		return
 	}
 
