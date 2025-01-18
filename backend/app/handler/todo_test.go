@@ -4,6 +4,7 @@ import (
 	"backend/app/database"
 	"backend/app/handler"
 	"backend/app/model"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,12 +17,8 @@ import (
 )
 
 func TestGetTodos(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("モックDBの作成に失敗しました: %s", err)
-	}
+	db, mock := setUpMockDB(t)
 	defer db.Close()
-	database.SetDB(db)
 
 	cases := map[string]struct {
 		mockSetup      func()
@@ -91,22 +88,10 @@ func TestGetTodos(t *testing.T) {
 
 			handler.GetTodos(rec, req)
 
-			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("満たされていない期待値があります: %s", err)
-			}
-
-			if rec.Code != c.wantStatusCode {
-				t.Errorf("期待したステータスコード: %d, 実際のステータスコード: %d", c.wantStatusCode, rec.Code)
-			}
-
-			var got model.TodosResponse[[]model.Todo]
-			if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
-				t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
-			}
-
-			if !reflect.DeepEqual(got, c.wantBody) {
-				t.Errorf("期待したレスポンス: %v, 実際のレスポンス: %v", c.wantBody, got)
-			}
+			checkMockExpectations(t, mock)
+			checkStatusCode(t, c.wantStatusCode, rec.Code)
+			got := decodeResponseBody[model.TodosResponse[[]model.Todo]](t, rec)
+			checkResponseBody(t, c.wantBody, got)
 		})
 	}
 }
@@ -184,22 +169,57 @@ func TestCreateTodo(t *testing.T) {
 
 			handler.CreateTodo(rec, req)
 
-			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("満たされていない期待値があります: %s", err)
-			}
-
-			if rec.Code != c.wantStatusCode {
-				t.Errorf("期待したステータスコード: %d, 実際のステータスコード: %d", c.wantStatusCode, rec.Code)
-			}
-
-			var got model.TodosResponse[[]model.Todo]
-			if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
-				t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
-			}
-
-			if !reflect.DeepEqual(got, c.wantBody) {
-				t.Errorf("期待したレスポンス: %v, 実際のレスポンス: %v", c.wantBody, got)
-			}
+			checkMockExpectations(t, mock)
+			checkStatusCode(t, c.wantStatusCode, rec.Code)
+			got := decodeResponseBody[model.TodosResponse[[]model.Todo]](t, rec)
+			checkResponseBody(t, c.wantBody, got)
 		})
+	}
+}
+
+func setUpMockDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
+	t.Helper()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("モックDBの作成に失敗しました: %s", err)
+	}
+	database.SetDB(db)
+
+	return db, mock
+}
+
+func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
+	t.Helper()
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("満たされていない期待値があります: %s", err)
+	}
+}
+
+func checkStatusCode(t *testing.T, want, got int) {
+	t.Helper()
+
+	if want != got {
+		t.Errorf("期待したステータスコード: %d, 実際のステータスコード: %d", want, got)
+	}
+}
+
+func decodeResponseBody[T any](t *testing.T, rec *httptest.ResponseRecorder) T {
+	t.Helper()
+
+	var got T
+	if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
+		t.Fatalf("レスポンスのデコードに失敗しました: %s", err)
+	}
+
+	return got
+}
+
+func checkResponseBody(t *testing.T, want, got interface{}) {
+	t.Helper()
+
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("期待したレスポンス: %v, 実際のレスポンス: %v", want, got)
 	}
 }
