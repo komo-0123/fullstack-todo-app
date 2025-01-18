@@ -48,14 +48,9 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := database.GetDB()
-	results, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
+	_, err := db.Exec("INSERT INTO todos (title, is_complete) VALUES (?, ?)", newTodo.Title, newTodo.IsComplete)
 	if err != nil {
 		response.WriteJSON(w, []model.Todo{}, http.StatusInternalServerError, constant.DB_ERR_FAILED_ADD_TODO)
-		return
-	}
-
-	if _, err := results.LastInsertId(); err != nil {
-		response.WriteJSON(w, []model.Todo{}, http.StatusInternalServerError, constant.INPUT_ERR_FAILED_GET_ID)
 		return
 	}
 
