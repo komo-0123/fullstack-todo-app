@@ -1,26 +1,28 @@
 package response
 
 import (
+	"backend/app/model"
 	"encoding/json"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type ErrorResponse struct {
-	Error  string `json:"error"`
-	Status int    `json:"status"`
-}
-
-// エラーレスポンスをJSON形式で返す
-func WriteJSONError(w http.ResponseWriter, message string, statusCode int) {
+// レスポンスをJSON形式で返却する
+func WriteJSON[T model.Todo | []model.Todo](w http.ResponseWriter, data T, code int, errMessage string) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(code)
 
-	r := ErrorResponse{
-		Error:  message,
-		Status: statusCode,
+	res := model.TodosResponse[T]{
+		Data: data,
+		Status: model.StatusInfo{
+			Code:         code,
+			Error:        errMessage != "",
+			ErrorMessage: errMessage,
+		},
 	}
 
-	json.NewEncoder(w).Encode(r)
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		http.Error(w, `{"data": null, "status": {"code": 500, "error": true, "error_message": "内部エラーが発生しました。"}}`, http.StatusInternalServerError)
+	}
 }

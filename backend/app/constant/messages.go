@@ -1,10 +1,5 @@
 package constant
 
-// 成功時に使用するメッセージ
-const (
-	SUCCESS = "成功しました。"
-)
-
 // 入力関連のエラーメッセージ
 const (
 	INPUT_ERR_INVALID_INPUT = "入力が不正です。"
