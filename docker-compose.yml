@@ -23,6 +23,8 @@ services:
     volumes:
       - ./backend:/backend
       - /backend/tmp
+    depends_on:
+      - db
 
   db:
     image: mysql:8.0
