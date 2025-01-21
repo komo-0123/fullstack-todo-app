@@ -231,7 +231,7 @@ func createTestRequest(t *testing.T, method, path, body string) *http.Request {
 	return req
 }
 
-func createTodoResponse[T model.Todo | []model.Todo](t *testing.T, data T, code int, errorMessage string) model.TodoResponse[T] {
+func createTodoResponse[T model.TodoTypes](t *testing.T, data T, code int, errorMessage string) model.TodoResponse[T] {
 	t.Helper()
 
 	return model.TodoResponse[T]{

@@ -9,7 +9,7 @@ import (
 )
 
 // レスポンスをJSON形式で返却する
-func WriteJSON[T model.Todo | []model.Todo](w http.ResponseWriter, data T, code int, errMessage string) {
+func WriteJSON[T model.TodoTypes](w http.ResponseWriter, data T, code int, errMessage string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 
