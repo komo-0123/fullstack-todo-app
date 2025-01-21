@@ -13,7 +13,7 @@ func WriteJSON[T model.Todo | []model.Todo](w http.ResponseWriter, data T, code 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 
-	res := model.TodosResponse[T]{
+	res := model.TodoResponse[T]{
 		Data: data,
 		Status: model.StatusInfo{
 			Code:         code,
