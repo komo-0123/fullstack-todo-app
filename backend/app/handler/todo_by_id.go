@@ -19,6 +19,7 @@ func GetTodoById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response.WriteJSON(w, []model.Todo{}, http.StatusBadRequest, constant.INPUT_ERR_INVALID_ID)
+		return
 	}
 
 	var todo model.Todo
