@@ -1,7 +1,6 @@
 package handler_test
 
 import (
-	"backend/app/database"
 	"backend/app/handler"
 	"backend/app/model"
 	"fmt"
@@ -13,16 +12,13 @@ import (
 )
 
 func TestGetTodos(t *testing.T) {
-	db, mock := setUpMockDB(t)
-	defer db.Close()
-
 	cases := map[string]struct {
-		mockSetup      func()
+		mockSetup      func(mock sqlmock.Sqlmock)
 		wantStatusCode int
 		wantBody       interface{}
 	}{
 		"正常系": {
-			mockSetup: func() {
+			mockSetup: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
 					WillReturnRows(sqlmock.NewRows([]string{"id", "title", "is_complete"}).
 						AddRow(1, "title1", false).
@@ -37,7 +33,7 @@ func TestGetTodos(t *testing.T) {
 			),
 		},
 		"クエリ失敗": {
-			mockSetup: func() {
+			mockSetup: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
 					WillReturnError(fmt.Errorf("DBエラー"))
 			},
@@ -50,7 +46,7 @@ func TestGetTodos(t *testing.T) {
 			),
 		},
 		"行スキャン失敗": {
-			mockSetup: func() {
+			mockSetup: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("SELECT id, title, is_complete FROM todos").
 					WillReturnRows(sqlmock.NewRows([]string{"id", "title", "is_complete"}).
 						AddRow("不正なID", "title1", false))
@@ -67,7 +63,10 @@ func TestGetTodos(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			c.mockSetup()
+			db, mock := setUpMockDB(t)
+			defer db.Close()
+
+			c.mockSetup(mock)
 
 			rec := httptest.NewRecorder()
 			req := createTestRequest(t, http.MethodGet, "/todos", "")
@@ -83,22 +82,15 @@ func TestGetTodos(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("モックDBの作成に失敗しました: %s", err)
-	}
-	defer db.Close()
-	database.SetDB(db)
-
 	cases := map[string]struct {
 		inputBody      string
-		mockSetup      func()
+		mockSetup      func(mock sqlmock.Sqlmock)
 		wantStatusCode int
 		wantBody       interface{}
 	}{
 		"正常系": {
 			inputBody: `{"title": "新しいタスク", "is_complete": false}`,
-			mockSetup: func() {
+			mockSetup: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec(`INSERT INTO todos`).
 					WithArgs("新しいタスク", false).
 					WillReturnResult(sqlmock.NewResult(1, 1))
@@ -113,7 +105,7 @@ func TestCreateTodo(t *testing.T) {
 		},
 		"不正な入力": {
 			inputBody:      `{"title": 123, "is_complete": false}`,
-			mockSetup:      func() {},
+			mockSetup:      func(mock sqlmock.Sqlmock) {},
 			wantStatusCode: http.StatusBadRequest,
 			wantBody: createTodoResponse(
 				t,
@@ -124,7 +116,7 @@ func TestCreateTodo(t *testing.T) {
 		},
 		"DB追加失敗": {
 			inputBody: `{"title": "新しいタスク", "is_complete": false}`,
-			mockSetup: func() {
+			mockSetup: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec(`INSERT INTO todos`).
 					WithArgs("新しいタスク", false).
 					WillReturnError(fmt.Errorf("DBエラー"))
@@ -141,7 +133,10 @@ func TestCreateTodo(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			c.mockSetup()
+			db, mock := setUpMockDB(t)
+			defer db.Close()
+
+			c.mockSetup(mock)
 
 			rec := httptest.NewRecorder()
 			req := createTestRequest(t, http.MethodPost, "/todos", c.inputBody)
