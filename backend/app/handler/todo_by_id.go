@@ -61,11 +61,22 @@ func UpdateTodoById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := database.GetDB()
-	query := "UPDATE todos SET title = ?, is_complete = ? WHERE id = ?"
-	result, err := db.Exec(query, updatedTodo.Title, updatedTodo.IsComplete, id)
+
+	var existingTodo model.Todo
+	checkQuery := "SELECT id, title, is_complete FROM todos WHERE id = ?"
+	if err := db.QueryRow(checkQuery, id).Scan(&existingTodo.ID, &existingTodo.Title, &existingTodo.IsComplete); err != nil {
+		if err == sql.ErrNoRows {
+			response.WriteTodoResponse(w, nil, http.StatusNotFound, constant.DB_ERR_NOT_FOUND_TODO)
+		} else {
+			response.WriteTodoResponse(w, nil, http.StatusInternalServerError, constant.DB_ERR_FAILED_GET_TODO_ROW)
+		}
+		return
+	}
+
+	updateQuery := "UPDATE todos SET title = ?, is_complete = ? WHERE id = ?"
+	result, err := db.Exec(updateQuery, updatedTodo.Title, updatedTodo.IsComplete, id)
 	if err != nil {
 		response.WriteTodoResponse(w, nil, http.StatusInternalServerError, constant.DB_ERR_FAILED_UPDATE_TODO)
-		return
 	}
 
 	// ResultインターフェースのRowsAffected()は更新された行数を返す。
