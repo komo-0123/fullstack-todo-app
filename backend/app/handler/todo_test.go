@@ -25,7 +25,7 @@ func TestGetTodos(t *testing.T) {
 						AddRow(2, "title2", true))
 			},
 			wantStatusCode: http.StatusOK,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{{ID: 1, Title: "title1", IsComplete: false}, {ID: 2, Title: "title2", IsComplete: true}},
 				http.StatusOK,
@@ -38,7 +38,7 @@ func TestGetTodos(t *testing.T) {
 					WillReturnError(fmt.Errorf("DBエラー"))
 			},
 			wantStatusCode: http.StatusInternalServerError,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{},
 				http.StatusInternalServerError,
@@ -52,7 +52,7 @@ func TestGetTodos(t *testing.T) {
 						AddRow("不正なID", "title1", false))
 			},
 			wantStatusCode: http.StatusInternalServerError,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{},
 				http.StatusInternalServerError,
@@ -75,7 +75,7 @@ func TestGetTodos(t *testing.T) {
 
 			checkMockExpectations(t, mock)
 			checkStatusCode(t, c.wantStatusCode, rec.Code)
-			got := decodeResponseBody[model.TodoResponse[[]model.Todo]](t, rec)
+			got := decodeResponseBody[model.TodosResponse](t, rec)
 			checkResponseBody(t, c.wantBody, got)
 		})
 	}
@@ -96,7 +96,7 @@ func TestCreateTodo(t *testing.T) {
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 			wantStatusCode: http.StatusCreated,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{},
 				http.StatusCreated,
@@ -107,7 +107,7 @@ func TestCreateTodo(t *testing.T) {
 			inputBody:      `{"title": 123, "is_complete": false}`,
 			mockSetup:      func(mock sqlmock.Sqlmock) {},
 			wantStatusCode: http.StatusBadRequest,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{},
 				http.StatusBadRequest,
@@ -122,7 +122,7 @@ func TestCreateTodo(t *testing.T) {
 					WillReturnError(fmt.Errorf("DBエラー"))
 			},
 			wantStatusCode: http.StatusInternalServerError,
-			wantBody: createTodoResponse(
+			wantBody: createTodosResponse(
 				t,
 				[]model.Todo{},
 				http.StatusInternalServerError,
@@ -145,7 +145,7 @@ func TestCreateTodo(t *testing.T) {
 
 			checkMockExpectations(t, mock)
 			checkStatusCode(t, c.wantStatusCode, rec.Code)
-			got := decodeResponseBody[model.TodoResponse[[]model.Todo]](t, rec)
+			got := decodeResponseBody[model.TodosResponse](t, rec)
 			checkResponseBody(t, c.wantBody, got)
 		})
 	}

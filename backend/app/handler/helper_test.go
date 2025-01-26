@@ -28,10 +28,24 @@ func setUpMockDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
 }
 
 // createTodoResponseは、テスト用のTodoResponseを作成し、それを返します。
-func createTodoResponse[T model.TodoTypes](t *testing.T, data T, code int, errorMessage string) model.TodoResponse[T] {
+func createTodoResponse(t *testing.T, data *model.Todo, code int, errorMessage string) model.TodoResponse {
 	t.Helper()
 
-	return model.TodoResponse[T]{
+	return model.TodoResponse{
+		Data: data,
+		Status: model.StatusInfo{
+			Code:         code,
+			Error:        errorMessage != "",
+			ErrorMessage: errorMessage,
+		},
+	}
+}
+
+// createTodosResponseは、テスト用のTodosResponseを作成し、それを返します。
+func createTodosResponse(t *testing.T, data []model.Todo, code int, errorMessage string) model.TodosResponse {
+	t.Helper()
+
+	return model.TodosResponse{
 		Data: data,
 		Status: model.StatusInfo{
 			Code:         code,
@@ -60,12 +74,12 @@ func checkStatusCode(t *testing.T, want, got int) {
 }
 
 // decodeResponseBodyは、レスポンスボディをデコードし、それを返します。
-func decodeResponseBody[T any](t *testing.T, rec *httptest.ResponseRecorder) T {
+func decodeResponseBody[T any](t *testing.T, w *httptest.ResponseRecorder) T {
 	t.Helper()
 
 	var got T
-	if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
-		t.Fatalf("レスポンスのデコードに失敗しました: %s\nレスポンスボディ: %s", err, rec.Body.String())
+	if err := json.NewDecoder(w.Body).Decode(&got); err != nil {
+		t.Fatalf("レスポンスのデコードに失敗しました: %s\nレスポンスボディ: %s", err, w.Body.String())
 	}
 
 	return got

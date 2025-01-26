@@ -12,7 +12,7 @@ func JSONContentType(next http.Handler) http.Handler {
 		if r.Method == http.MethodPost || r.Method == http.MethodPut {
 			if r.Header.Get("Content-Type") != "application/json" {
 				const m = "JSON形式のデータを送信してください。"
-				response.WriteJSON(w, []model.Todo{}, http.StatusRequestEntityTooLarge, m)
+				response.WriteTodosResponse(w, []model.Todo{}, http.StatusRequestEntityTooLarge, m)
 				return
 			}
 		}

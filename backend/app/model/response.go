@@ -1,10 +1,11 @@
 package model
 
-type TodoTypes interface {
-	Todo | []Todo
+type TodoResponse struct {
+	Data   *Todo      `json:"data"`
+	Status StatusInfo `json:"status"`
 }
 
-type TodoResponse[T TodoTypes] struct {
-	Data   T          `json:"data"`
+type TodosResponse struct {
+	Data   []Todo     `json:"data"`
 	Status StatusInfo `json:"status"`
 }

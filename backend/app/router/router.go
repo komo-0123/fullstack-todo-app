@@ -12,7 +12,7 @@ func MethodRouter(method map[string]http.HandlerFunc) http.HandlerFunc {
 			h(w, r)
 		} else {
 			const notAllowedMethod = "許可されていないメソッドです。"
-			response.WriteJSON(w, []model.Todo{}, http.StatusMethodNotAllowed, notAllowedMethod)
+			response.WriteTodosResponse(w, []model.Todo{}, http.StatusMethodNotAllowed, notAllowedMethod)
 		}
 	}
 }
