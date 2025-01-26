@@ -11,26 +11,48 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const (
+	serverAddress = ":8080"
+)
+
 func main() {
+	initDatabase()
+	defer database.GetDB().Close()
+
+	startServer()
+}
+
+// データベースの初期化
+func initDatabase() {
 	if err := database.Init(); err != nil {
 		log.Fatalf("failed to initialize DB: %v", err)
 	}
-	defer database.GetDB().Close()
+}
 
+// サーバーの起動
+func startServer() {
+	mux := setupRouter()
+
+	lateLimiter := middleware.NewRateLimiter()
+	handlerWithMiddlewares := middleware.Chain(mux, lateLimiter)
+
+	log.Printf("Server running on http://localhost%s", serverAddress)
+	log.Fatal(http.ListenAndServe(serverAddress, handlerWithMiddlewares))
+}
+
+func setupRouter() *http.ServeMux {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/todos", router.MethodRouter(map[string]http.HandlerFunc{
 		http.MethodGet:  handler.GetTodos,
 		http.MethodPost: handler.CreateTodo,
 	}))
+
 	mux.HandleFunc("/todos/", router.MethodRouter(map[string]http.HandlerFunc{
 		http.MethodGet:    handler.GetTodoById,
 		http.MethodPut:    handler.UpdateTodoById,
 		http.MethodDelete: handler.DeleteTodoById,
 	}))
 
-	lateLimiter := middleware.NewRateLimiter()
-	handlerWithMiddlewares := middleware.Chain(mux, lateLimiter)
-
-	log.Println("Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", handlerWithMiddlewares))
+	return mux
 }
