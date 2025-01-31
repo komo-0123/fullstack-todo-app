@@ -10,7 +10,8 @@ services:
       - ./backend:/backend
       - /backend/tmp
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8.0
@@ -24,6 +25,11 @@ services:
       MYSQL_PASSWORD: todo_password
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
 
 volumes:
   db-data:
