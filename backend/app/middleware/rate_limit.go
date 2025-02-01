@@ -29,8 +29,8 @@ func (rl *RateLimiter) getLimiter(remoteAddr string) *rate.Limiter {
 	}
 
 	const (
-		limit = 1 // 1秒間に1リクエスト
-		burst = 3 // バースト数
+		limit = 1  // 1秒間に1リクエスト
+		burst = 10 // バースト数
 	)
 	limiter := rate.NewLimiter(limit, burst)
 	rl.limiters[remoteAddr] = limiter
