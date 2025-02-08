@@ -1,6 +1,6 @@
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
-import { TodoInput, TodoList } from "@/features/todo";
+import { TodoInput, TodoList } from "@/features/Todo";
 
 function App() {
   return (
