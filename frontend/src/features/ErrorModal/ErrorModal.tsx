@@ -8,11 +8,13 @@ const ErrorModal = () => {
 
   useEffect(() => {
     if (errorMessage) {
-      setTimeout(() => dialogRef.current?.showModal(), 0);
+      dialogRef.current?.showModal();
     }
   }, [errorMessage]);
 
-  if (!errorMessage) return null;
+  if (!errorMessage) {
+    return null;
+  }
 
   return createPortal(
     <dialog
@@ -25,7 +27,7 @@ const ErrorModal = () => {
           dialogRef.current?.close();
           closeError();
         }}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="mt-4 px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 mx-auto block"
       >
         OK
       </button>

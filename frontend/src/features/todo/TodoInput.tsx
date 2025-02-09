@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { TodosResponse } from "@/types";
 import { API } from "@/constant";
 import { mutate } from "swr";
+import { ErrorModalContext } from "@/features/ErrorModal";
 
 const TodoInput = () => {
+  const { showError } = useContext(ErrorModalContext);
   const [inputValue, seInputValue] = useState("");
 
   // jsonでリクエスを送信。サーバーはlocalhost:8000/todosにリクエストを受け取る
@@ -24,11 +26,12 @@ const TodoInput = () => {
 
     const data: TodosResponse = await res.json();
 
-    mutate(`${API.BASE_URL}${API.TODOS}`);
+    if (data.status.error) {
+      showError(data.status.error_message);
+    }
 
+    mutate(`${API.BASE_URL}${API.TODOS}`);
     seInputValue("");
-    // sataus.errorがtrueの場合、エラーメッセージをモーダルで表示
-    // statsu.errorがfalseの場合、TODOリストを再取得
   };
 
   return (

@@ -4,8 +4,11 @@ import { createContext } from "react";
 export type ErrorModalContextType = {
   showError: (message: string) => void;
   closeError: () => void;
-  errorMessage: string | null;
+  errorMessage: string;
 };
 
-// Context を作成（このファイルは「Context の定義のみ」）
-export const ErrorModalContext = createContext<ErrorModalContextType | undefined>(undefined);
+export const ErrorModalContext = createContext<ErrorModalContextType>({
+  showError: () => {},
+  closeError: () => {},
+  errorMessage: "",
+});
